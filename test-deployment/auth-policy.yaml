@@ -1,0 +1,18 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  namespace: kic
+  name: test-kic-feed
+spec:
+  selector:
+    matchLabels:
+      app: test-kic-feed
+  action: CUSTOM
+  provider:
+    name: test-ext-authz-grpc
+  rules:
+    - to:
+        - operation:
+            paths: [
+                    "/kic.feed.Feed/GenerateFeedForUserRequest"
+            ]

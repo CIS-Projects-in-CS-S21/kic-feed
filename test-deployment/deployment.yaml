@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: kic
+  name: test-kic-feed-service
+spec:
+  ports:
+    - port: 50051
+      targetPort: 50051
+      name: grpc-web
+  selector:
+    app: test-kic-feed
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: kic
+  name: test-kic-feed
+spec:
+  selector:
+    matchLabels:
+      app: test-kic-feed
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      namespace: kic
+      labels:
+        app: test-kic-feed
+    spec:
+      containers:
+        - image: gcr.io/keeping-it-casual/kic-feed:dev
+          name: test-kic-feed
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 50051
+          env:
+            - name: PORT
+              value: "50051"
+            - name: DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: db-pass
+                  key: db-pass
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: secret-key
+                  key: secret-key
