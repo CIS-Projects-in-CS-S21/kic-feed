@@ -125,7 +125,7 @@ func (f *FeedGenerator) rankAndSortPosts(
 	// we have multiple posts for today, do the sort
 	if endFriendIndex > 2 {
 		f.logger.Debug("Sorting by connection strength")
-		todaySlice := posts[:endFriendIndex + 1]
+		todaySlice := posts[:endFriendIndex+1]
 		strengthMap := make(map[int]float32)
 
 		for i := 0; i < endFriendIndex; i++ {
@@ -143,8 +143,8 @@ func (f *FeedGenerator) rankAndSortPosts(
 		}
 
 		sort.SliceStable(todaySlice, func(i, j int) bool {
-			user1ID, _ :=  strconv.Atoi(todaySlice[i].Metadata["userID"])
-			user2ID, _ :=  strconv.Atoi(todaySlice[j].Metadata["userID"])
+			user1ID, _ := strconv.Atoi(todaySlice[i].Metadata["userID"])
+			user2ID, _ := strconv.Atoi(todaySlice[j].Metadata["userID"])
 			return strengthMap[user1ID] < strengthMap[user2ID]
 		})
 	}
