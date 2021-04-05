@@ -51,6 +51,7 @@ func main() {
 		server.NewFriendClientWrapper(conn),
 		server.NewUserClientWrapper(conn),
 		server.NewMediaClientWrapper(conn),
+		server.NewHealthClientWrapper(conn),
 	)
 
 	serv := server.NewFeedService(feedGen, logger)
