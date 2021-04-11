@@ -20,10 +20,10 @@ func main() {
 	var connectionURL string
 	if IsProduction {
 		logger = logging.CreateLogger(zapcore.InfoLevel)
-		connectionURL = "keeping-it-casual.com:50051"
+		connectionURL = "api.keeping-it-casual.com:50051"
 	} else {
 		logger = logging.CreateLogger(zapcore.DebugLevel)
-		connectionURL = "test.keeping-it-casual.com:50051"
+		connectionURL = "test.api.keeping-it-casual.com:50051"
 	}
 
 	ListenAddress := ":" + os.Getenv("PORT")
@@ -48,10 +48,10 @@ func main() {
 
 	feedGen := server.NewFeedGenerator(
 		logger,
-		server.NewFriendClientWrapper(conn),
-		server.NewUserClientWrapper(conn),
-		server.NewMediaClientWrapper(conn),
-		server.NewHealthClientWrapper(conn),
+		server.NewFriendClientWrapper(conn, logger),
+		server.NewUserClientWrapper(conn, logger),
+		server.NewMediaClientWrapper(conn, logger),
+		server.NewHealthClientWrapper(conn, logger),
 	)
 
 	serv := server.NewFeedService(feedGen, logger)

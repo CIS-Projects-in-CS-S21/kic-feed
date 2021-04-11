@@ -8,7 +8,6 @@ import (
 	"math/rand"
 	"sort"
 	"strconv"
-	"time"
 )
 
 const (
@@ -88,7 +87,8 @@ func (f *FeedGenerator) rankAndSortPosts(
 	authCredentials string,
 	posts []*pbcommon.File,
 ) error {
-	// fisher-yates shuffle the array to try and break up posts by a given user
+	// fisher-yates shuffle the array to try and break up posts by a given user, since we are using
+	// stable sorts later on
 	for i := range posts {
 		j := rand.Intn(i + 1)
 		posts[i], posts[j] = posts[j], posts[i]
@@ -96,27 +96,32 @@ func (f *FeedGenerator) rankAndSortPosts(
 
 	// we want chronological order to be the principle ordering, so the first index will be the most recent post
 	sort.SliceStable(posts, func(i, j int) bool {
-		if posts[i].DateStored.Year > posts[j].DateStored.Year {
+		if posts[i].DateStored.Year < posts[j].DateStored.Year {
+			return false
+		} else if posts[i].DateStored.Year > posts[j].DateStored.Year {
 			return true
 		}
+
 		if posts[i].DateStored.Month > posts[j].DateStored.Month {
 			return true
-		}
-		if posts[i].DateStored.Day > posts[j].DateStored.Day {
+		} else if posts[i].DateStored.Month < posts[j].DateStored.Month {
+			return false
+		} else if posts[i].DateStored.Day > posts[j].DateStored.Day {
 			return true
+		} else if posts[i].DateStored.Day < posts[j].DateStored.Day {
+			return false
 		}
-		return false
+
+		return true
 	})
 
-	// since we do not distinguish between times in a given day, we sort today further by friend strength
-	dateToday := time.Now()
-
-	day := dateToday.Day()
-
+	// since we do not distinguish between times in a given day, we sort the latest day further by friend strength
 	endFriendIndex := 0
+	day := posts[endFriendIndex].DateStored.Day
+	month := posts[endFriendIndex].DateStored.Month
 
 	for {
-		if int(posts[endFriendIndex].DateStored.Day) != day {
+		if posts[endFriendIndex].DateStored.Day != day || posts[endFriendIndex].DateStored.Month != month {
 			break
 		}
 		endFriendIndex += 1
@@ -125,7 +130,7 @@ func (f *FeedGenerator) rankAndSortPosts(
 	// we have multiple posts for today, do the sort
 	if endFriendIndex > 2 {
 		f.logger.Debug("Sorting by connection strength")
-		todaySlice := posts[:endFriendIndex+1]
+		todaySlice := posts[:endFriendIndex]
 		strengthMap := make(map[int]float32)
 
 		for i := 0; i < endFriendIndex; i++ {
@@ -152,24 +157,51 @@ func (f *FeedGenerator) rankAndSortPosts(
 	return nil
 }
 
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func (f *FeedGenerator) injectMentalHealthPosts(
 	ctx context.Context,
 	userID int64,
 	authCredentials string,
 	posts []*pbcommon.File,
-) error {
+) ([]*pbcommon.File, error) {
 	score, err := f.healthClient.GetMentalHealthScoreForUser(ctx, userID, authCredentials)
 
 	if err != nil {
 		f.logger.Errorf("Failed to get health score for user: %v", err)
-		return err
+		return posts, err
 	}
 
 	if score < healthThreshold {
+		healthPosts, err := f.mediaClient.GetFilesForUser(ctx, -1, authCredentials)
+		if err != nil {
+			f.logger.Errorf("Failed to get mental health posts for user: %v", err)
+			return posts, err
+		}
 		// inject posts here
+		numInject := min(len(healthPosts), len(posts)%5)
+		healthPostIndex := 0
+		returnSize := numInject + len(posts)
+		toReturn := make([]*pbcommon.File, returnSize)
+
+		for i := 0; i < returnSize; i++ {
+			// every 5th post we make a mental health post
+			if i%5 == 0 {
+				toReturn[i] = healthPosts[healthPostIndex]
+				healthPostIndex++
+			} else {
+				toReturn[i] = posts[i-healthPostIndex]
+			}
+		}
+		return toReturn, nil
 	}
 
-	return nil
+	return posts, nil
 }
 
 func (f *FeedGenerator) GenerateFeedForUser(
@@ -218,7 +250,7 @@ func (f *FeedGenerator) GenerateFeedForUser(
 
 	// Finally inject mental health posts if needed
 
-	err = f.injectMentalHealthPosts(ctx, userID, authCredentials, allPosts)
+	allPosts, err = f.injectMentalHealthPosts(ctx, userID, authCredentials, allPosts)
 
 	if err != nil {
 		f.logger.Debugf("Failed to inject posts for uid %v, err: %v", userID, err)
