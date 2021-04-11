@@ -184,14 +184,14 @@ func (f *FeedGenerator) injectMentalHealthPosts(
 			return posts, err
 		}
 		// inject posts here
-		numInject := min(len(healthPosts), len(posts) % 5)
+		numInject := min(len(healthPosts), len(posts)%5)
 		healthPostIndex := 0
 		returnSize := numInject + len(posts)
 		toReturn := make([]*pbcommon.File, returnSize)
 
 		for i := 0; i < returnSize; i++ {
 			// every 5th post we make a mental health post
-			if i % 5 == 0 {
+			if i%5 == 0 {
 				toReturn[i] = healthPosts[healthPostIndex]
 				healthPostIndex++
 			} else {
