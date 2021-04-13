@@ -120,7 +120,7 @@ func (f *FeedGenerator) rankAndSortPosts(
 	day := posts[endFriendIndex].DateStored.Day
 	month := posts[endFriendIndex].DateStored.Month
 
-	for {
+	for endFriendIndex < len(posts) {
 		if posts[endFriendIndex].DateStored.Day != day || posts[endFriendIndex].DateStored.Month != month {
 			break
 		}
