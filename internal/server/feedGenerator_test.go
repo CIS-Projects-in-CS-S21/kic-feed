@@ -163,12 +163,12 @@ func configureMedia() MediaServicer {
 				},
 			},
 		},
-		-1: {
+		150: {
 			&pbcommon.File{
 				FileName:     "mentalHealth1",
 				FileLocation: "",
 				Metadata: map[string]string{
-					"userID": "-1",
+					"userID": "150",
 				},
 				DateStored: &pbcommon.Date{
 					Year:  2021,
@@ -180,7 +180,7 @@ func configureMedia() MediaServicer {
 				FileName:     "mentalHealth2",
 				FileLocation: "",
 				Metadata: map[string]string{
-					"userID": "-1",
+					"userID": "150",
 				},
 				DateStored: &pbcommon.Date{
 					Year:  2021,
@@ -192,7 +192,7 @@ func configureMedia() MediaServicer {
 				FileName:     "mentalHealth3",
 				FileLocation: "",
 				Metadata: map[string]string{
-					"userID": "-1",
+					"userID": "150",
 				},
 				DateStored: &pbcommon.Date{
 					Year:  2020,
@@ -210,7 +210,7 @@ func configureHealth() HealthServicer {
 
 	health := map[int64]int32{
 		1: 2,
-		2: -12,
+		2: 1502,
 		3: 1,
 		4: -20,
 		5: 5,
@@ -260,14 +260,14 @@ func TestFeedGenerator_GenerateFeedForNegativeUser(t *testing.T) {
 	}
 
 	// this user is quite negative, the first post should be mental health based, and then every 5 after that
-	if posts[0].Metadata["userID"] != "-1" {
-		t.Errorf("Expected first post to be by user -1, got: %v", posts[0].Metadata["userID"])
+	if posts[0].Metadata["userID"] != "150" {
+		t.Errorf("Expected first post to be by user 150, got: %v", posts[0].Metadata["userID"])
 	}
-	if posts[5].Metadata["userID"] != "-1" {
-		t.Errorf("Expected first post to be by user -1, got: %v", posts[5].Metadata["userID"])
+	if posts[5].Metadata["userID"] != "150" {
+		t.Errorf("Expected first post to be by user 150, got: %v", posts[5].Metadata["userID"])
 	}
-	if posts[10].Metadata["userID"] != "-1" {
-		t.Errorf("Expected first post to be by user -1, got: %v", posts[10].Metadata["userID"])
+	if posts[10].Metadata["userID"] != "150" {
+		t.Errorf("Expected first post to be by user 150, got: %v", posts[10].Metadata["userID"])
 	}
 
 	for _, post := range posts {

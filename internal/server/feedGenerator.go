@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	healthThreshold = -10
+	healthThreshold = 0
 )
 
 type FeedGenerator struct {
@@ -178,15 +178,16 @@ func (f *FeedGenerator) injectMentalHealthPosts(
 	}
 
 	if score < healthThreshold {
-		healthPosts, err := f.mediaClient.GetFilesForUser(ctx, -1, authCredentials)
+		healthPosts, err := f.mediaClient.GetFilesForUser(ctx, 150, authCredentials)
 		if err != nil {
 			f.logger.Errorf("Failed to get mental health posts for user: %v", err)
 			return posts, err
 		}
 		// inject posts here
-		numInject := min(len(healthPosts), len(posts)%5)
+		numInject := min(len(healthPosts), (len(posts)/5) + 1)
 		healthPostIndex := 0
 		returnSize := numInject + len(posts)
+		f.logger.Debugf("Injecting %v mental health posts", numInject)
 		toReturn := make([]*pbcommon.File, returnSize)
 
 		for i := 0; i < returnSize; i++ {
@@ -238,6 +239,10 @@ func (f *FeedGenerator) GenerateFeedForUser(
 		}
 
 		allPosts = append(allPosts, files...)
+	}
+
+	if len(allPosts) < 2 {
+		return allPosts, nil
 	}
 
 	// Now we rank the posts with the algorithm
