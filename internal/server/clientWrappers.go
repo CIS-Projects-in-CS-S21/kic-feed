@@ -182,7 +182,7 @@ func (h *HealthClientWrapper) GetMentalHealthScoreForUser(
 		return 0, err
 	}
 
-	h.logger.Debugf("FGot health score for %v, returning %v", userID, resp.Score)
+	h.logger.Debugf("Got health score for %v, returning %v", userID, resp.Score)
 
-	return resp.Score, nil
+	return resp.GetScore(), nil
 }

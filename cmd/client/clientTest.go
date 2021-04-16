@@ -16,12 +16,12 @@ import (
 
 func postsShouldBeInOrder(authctx context.Context, uid int64, client pbfeed.FeedClient) []*pbcommon.File {
 	expectedOrder := map[int]string{
-		0:"Makefile4",
-		1:"Makefile5",
-		2:"Makefile1",
-		3:"Makefile2",
-		4:"Makefile6",
-		5:"Makefile3",
+		1: "Makefile4",
+		2: "Makefile5",
+		3: "Makefile1",
+		4: "Makefile2",
+		6: "Makefile6",
+		7: "Makefile3",
 	}
 
 	feedRes, err := client.GenerateFeedForUser(authctx, &pbfeed.GenerateFeedForUserRequest{UserID: uid})
@@ -45,17 +45,27 @@ func postsShouldBeInOrder(authctx context.Context, uid int64, client pbfeed.Feed
 	}
 
 	for idx, file := range files {
-
-		if expectedOrder[idx] != file.FileName {
-			log.Fatalf("File out of order! %v\nExpected %v", file, expectedOrder[idx] )
+		if val, ok := expectedOrder[idx]; ok {
+			if val != file.FileName {
+				log.Fatalf("File out of order at index %v! %v\nExpected %v", idx, file, expectedOrder[idx])
+			}
 		}
+
 	}
 
+	log.Printf("postsShouldBeInOrder: Success")
 	return files
 }
 
-func postsShouldHaveMentalHealthInjections() {
+func postsShouldHaveMentalHealthInjections(posts []*pbcommon.File) {
+	if posts[0].Metadata["userID"] != "150" {
+		log.Fatalf("Mental health post expected at index 0 but not seen")
+	}
 
+	if posts[5].Metadata["userID"] != "150" {
+		log.Fatalf("Mental health post expected at index 5 but not seen")
+	}
+	log.Printf("postsShouldHaveMentalHealthInjections: Success")
 }
 
 func main() {
@@ -86,9 +96,9 @@ func main() {
 
 	uid := res.User.UserID
 
-	postsShouldBeInOrder(ctx, uid, client)
+	posts := postsShouldBeInOrder(ctx, uid, client)
 
-	postsShouldHaveMentalHealthInjections()
+	postsShouldHaveMentalHealthInjections(posts)
 
 	log.Print("Success")
 }
