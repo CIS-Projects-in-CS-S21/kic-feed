@@ -192,7 +192,7 @@ func (f *FeedGenerator) injectMentalHealthPosts(
 
 		for i := 0; i < returnSize; i++ {
 			// every 5th post we make a mental health post
-			if i%5 == 0 {
+			if i%5 == 0 && healthPostIndex < numInject {
 				toReturn[i] = healthPosts[healthPostIndex]
 				healthPostIndex++
 			} else {
